@@ -1,14 +1,15 @@
 package ca.danielstout.halicrime
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.jetbrains.ktor.application.call
-import org.jetbrains.ktor.host.embeddedServer
-import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.routing.get
-import org.jetbrains.ktor.routing.routing
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.zaxxer.hikari.HikariDataSource
+import org.flywaydb.core.Flyway
+import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.LoggerFactory
+import org.sql2o.Sql2o
+import java.io.File
 import java.time.LocalDate
 
 data class ApiCrimeProperties(@JsonProperty("EVT_DATE") val date: String, @JsonProperty("LOCATION") val location: String, @JsonProperty("RUCR_EXT_D") val type: String)
@@ -18,19 +19,58 @@ data class ApiResponse(@JsonProperty("features") val crimes: Array<ApiCrime>)
 
 data class Crime(val date: LocalDate, val latitude: Double, val longitude: Double, val location: String, val type: String)
 
-
 val logger = LoggerFactory.getLogger("ca.danielstout.main");
+
+class Config(val dbUser: String, val dbPass: String, val dbPort: Int, val dbHost: String, val dbName: String)
+{
+    companion object
+    {
+        fun load(mapper: ObjectMapper): Config
+        {
+            return mapper.readValue(File("config.json"))
+        }
+    }
+}
 
 fun main(args: Array<String>)
 {
-    logger.debug("Hello!");
-    embeddedServer(Netty, 8080) {
-        routing {
-            get("/") {
-                call.respondText("Hello, world!", ContentType.Text.Html);
-            }
-        }
-    }.start(wait = true)
+    val mapper = ObjectMapper().registerModule(KotlinModule());
+    val conf = Config.load(mapper);
+
+    val data = PGSimpleDataSource()
+    data.user = conf.dbUser;
+    data.password = conf.dbPass;
+    data.portNumber = conf.dbPort;
+    data.serverName = conf.dbHost;
+    data.databaseName = conf.dbName;
+    val hsrc = HikariDataSource();
+    hsrc.dataSource = data;
+
+    val fly = Flyway();
+    fly.dataSource = hsrc;
+    val applied = fly.migrate();
+    logger.info("Applied $applied migrations");
+
+    val crime = Crime(LocalDate.now(), 44.6488, 63.5752, "123 Fake St.", "Robbery")
+
+    val sql2o = Sql2o(hsrc);
+    sql2o.open().use {
+        val sql = """
+INSERT INTO crimes (committed_at, coordinates, location, type)
+VALUES (:date, POINT(:latitude, :longitude), :location, :type);
+"""
+        it.createQuery(sql).bind(crime).executeUpdate();
+    }
+
+
+    //    logger.debug("Hello!");
+    //    embeddedServer(Netty, 8080) {
+    //        routing {
+    //            get("/") {
+    //                call.respondText("Hello, world!", ContentType.Text.Html);
+    //            }
+    //        }
+    //    }.start(wait = true)
     //    "http://catalogue-hrm.opendata.arcgis.com/datasets/f6921c5b12e64d17b5cd173cafb23677_0.geojson".httpGet().responseString { req, resp, result ->
     //        when (result)
     //        {
