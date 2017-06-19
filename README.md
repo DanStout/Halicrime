@@ -11,6 +11,7 @@ GRANT ALL PRIVILEGES ON DATABASE crime_db TO crime_user;
 
 ## To Do
 * Investigate Kotlin DI
+* Consider unique constraint on all columns?
 * Share ObjectMapper Instance
 * Setup Flyway
 * Fetch data once per week
