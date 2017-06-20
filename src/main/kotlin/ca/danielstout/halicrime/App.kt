@@ -6,14 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.zaxxer.hikari.HikariDataSource
 import io.reactivex.schedulers.Schedulers
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
-import java.time.Duration
-import java.time.ZonedDateTime
+import java.io.File
+import java.time.*
 import javax.sql.DataSource
 
 class App
@@ -45,6 +46,7 @@ class App
 
     val sql2o = Sql2oManager.getSql2o(hsrc)
     val repo = CrimeRepo(sql2o)
+    private val sched = Scheduler()
 
     init
     {
@@ -53,18 +55,21 @@ class App
         val applied = fly.migrate()
         log.info("Applied $applied migrations")
 
-
         var doFetch = true;
         val last = repo.getLastCrimeFetch()
         if (last == null)
         {
-            log.debug("Fetch has never run!");
+            log.debug("Fetch has never run! Fetching now");
+        }
+        else if (!last.success)
+        {
+            log.debug("Last fetch failed! Fetching now");
         }
         else
         {
             val daysSinceLastFetch = Duration.between(last.time, ZonedDateTime.now()).toDays()
             log.debug("Days since last fetch: ${daysSinceLastFetch}")
-            if (daysSinceLastFetch < 7)
+            if (daysSinceLastFetch < 8)
             {
                 doFetch = false;
             }
@@ -72,6 +77,7 @@ class App
 
         if (doFetch) fetch()
 
+        sched.scheduleTaskRepeatingWeekly({ fetch() }, LocalTime.of(18, 25), DayOfWeek.TUESDAY)
 
         val vertx = Vertx.vertx()
         val server = vertx.createHttpServer()
