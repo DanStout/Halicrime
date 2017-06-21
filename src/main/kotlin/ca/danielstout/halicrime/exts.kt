@@ -1,5 +1,6 @@
 package ca.danielstout.halicrime
 
+import io.vertx.core.http.HttpServerResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.reflect.companionObject
@@ -19,4 +20,9 @@ fun <T : Any> unwrapCompanionClass(ofClass: Class<T>): Class<*>
     {
         ofClass
     }
+}
+
+fun HttpServerResponse.json(): HttpServerResponse
+{
+    return this.putHeader("content-type", "application/json")
 }

@@ -82,12 +82,26 @@ class App
         val vertx = Vertx.vertx()
         val server = vertx.createHttpServer()
         val router = Router.router(vertx)
-        val crimes = repo.getCrimes();
 
-        router.get("/api/crimes").handler {
-            it.response()
-                .putHeader("content-type", "application/json")
-                .end(mapper.writeValueAsString(crimes))
+        router.get("/api/crimes").handler { req ->
+            log.debug("In handler")
+            vertx.executeBlocking<List<Crime>>({
+                val crimes = repo.getCrimes()
+                it.complete(crimes)
+            }, { res ->
+                if (res.succeeded())
+                {
+                    req.response()
+                        .json()
+                        .end(mapper.writeValueAsString(res.result()))
+                }
+                else
+                {
+                    req.response()
+                        .setStatusCode(500)
+                        .end()
+                }
+            })
         }
         router.route().handler({
             it.response().putHeader("content-type", "text/plain").end("Hey!")

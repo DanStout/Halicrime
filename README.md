@@ -11,8 +11,6 @@ GRANT ALL PRIVILEGES ON DATABASE crime_db TO crime_user;
 
 ## To Do
 * Investigate Kotlin DI
-* Fetch data once per week
-* Create api to retrieve data
 * Create VueJS webapp to view data
 
 
@@ -22,3 +20,5 @@ GRANT ALL PRIVILEGES ON DATABASE crime_db TO crime_user;
 * Setup Flyway
 * Add unique constraint to crimes table
 * Reuse ObjectMapper Instance
+* Fetch data once per week
+* Create api to retrieve data

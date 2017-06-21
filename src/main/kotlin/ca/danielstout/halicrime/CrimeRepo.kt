@@ -32,12 +32,15 @@ ON CONFLICT DO NOTHING
 
     fun getCrimes(): List<Crime>
     {
+        log.debug("Fetching crimes")
         val sql = """
 SELECT committed_at date, latitude, longitude, location, type
 FROM crimes
+ORDER BY committed_at
 """
         sql2o.open().use {
             val crimes = it.createQuery(sql).executeAndFetch(Crime::class.java)
+            log.debug("Found ${crimes.size} crimes")
             return crimes
         }
     }
