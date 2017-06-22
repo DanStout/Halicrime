@@ -24,8 +24,11 @@ export default {
     }
   },
   mounted() {
-    console.log('Hello')
-    $.get('http://localhost:7777/api/crimes')
+    console.log(process.env.NODE_ENV === 'development')
+    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:7777/api/' : '/api/'
+    var url = baseUrl + 'crimes'
+    console.log(url)
+    $.get(url)
     .done(crimes => this.crimes.push(...crimes))
     .fail(() => console.log('Failed to fetch crimes'))
   },
@@ -37,7 +40,6 @@ export default {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1, h2 {
   font-weight: normal;

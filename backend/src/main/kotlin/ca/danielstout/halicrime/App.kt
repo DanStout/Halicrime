@@ -13,6 +13,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.CorsHandler
+import io.vertx.ext.web.handler.StaticHandler
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 import java.io.File
@@ -120,9 +121,7 @@ class App
                 }
             })
         }
-        router.route().handler({
-            it.response().putHeader("content-type", "text/plain").end("Hey!")
-        })
+        router.route().handler(StaticHandler.create())
         val port = conf.serverPort;
         server.requestHandler({ router.accept(it) }).listen(port)
         log.info("Server launched on port $port")
