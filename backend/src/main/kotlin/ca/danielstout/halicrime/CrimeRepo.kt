@@ -34,7 +34,7 @@ ON CONFLICT DO NOTHING
     {
         log.debug("Fetching crimes")
         val sql = """
-SELECT committed_at date, latitude, longitude, location, type
+SELECT id, committed_at date, latitude, longitude, location, type
 FROM crimes
 ORDER BY committed_at
 """

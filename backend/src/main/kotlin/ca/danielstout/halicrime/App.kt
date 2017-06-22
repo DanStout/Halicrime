@@ -10,7 +10,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.zaxxer.hikari.HikariDataSource
 import io.reactivex.schedulers.Schedulers
 import io.vertx.core.Vertx
+import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.CorsHandler
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 import java.io.File
@@ -83,6 +85,21 @@ class App
         val server = vertx.createHttpServer()
         val router = Router.router(vertx)
 
+        val methods = setOf(HttpMethod.GET,
+            HttpMethod.POST,
+            HttpMethod.OPTIONS,
+            HttpMethod.HEAD,
+            HttpMethod.DELETE,
+            HttpMethod.PUT,
+            HttpMethod.PATCH)
+
+        val headers = setOf("origin", "content-type", "accept", "authorization")
+        val handler = CorsHandler.create("*")
+            .allowedMethods(methods)
+            .allowedHeaders(headers)
+            .allowCredentials(true)
+        router.route().handler(handler)
+
         router.get("/api/crimes").handler { req ->
             log.debug("In handler")
             vertx.executeBlocking<List<Crime>>({
@@ -106,7 +123,7 @@ class App
         router.route().handler({
             it.response().putHeader("content-type", "text/plain").end("Hey!")
         })
-        val port = 7777
+        val port = conf.serverPort;
         server.requestHandler({ router.accept(it) }).listen(port)
         log.info("Server launched on port $port")
     }

@@ -3,5 +3,6 @@
 	"dbPass" : "__________",
 	"dbPort" : 5432,
 	"dbHost" : "localhost",
-	"dbName" : "__________"
+	"dbName" : "__________",
+	"serverPort": 7777
 }

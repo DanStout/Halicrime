@@ -1,31 +1,37 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://gitter.im/vuejs/vue" target="_blank">Gitter Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
-      <br>
-      <li><a href="http://vuejs-templates.github.io/webpack/" target="_blank">Docs for This Template</a></li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
-    </ul>
-  </div>
+  <gmap-map
+  :center="{lat: 44.663244, lng:-63.584962}"
+  :zoom="12"
+  map-type-id="terrain"
+  style="width: 100%; height: 100%"
+>
+  <gmap-marker
+    v-for="crime in crimes"
+    :key = crime.id
+    :position = toLatLng(crime)
+    :title = crime.type
+  >
+  </gmap-marker>
+  </gmap-map>
 </template>
 
 <script>
 export default {
   name: 'hello',
-  data () {
+  data() {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      crimes: []
+    }
+  },
+  mounted() {
+    console.log('Hello')
+    $.get('http://localhost:7777/api/crimes')
+    .done(crimes => this.crimes.push(...crimes))
+    .fail(() => console.log('Failed to fetch crimes'))
+  },
+  methods: {
+    toLatLng(crime) {
+      return { lat: crime.latitude, lng: crime.longitude }
     }
   }
 }

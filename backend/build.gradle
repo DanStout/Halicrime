@@ -1,5 +1,5 @@
 group 'ca.danielstout'
-version '0.1'
+version '0.2'
 
 buildscript {
     ext.kotlin_version = '1.1.2-5'
@@ -17,6 +17,7 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
+apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 1.8
@@ -32,11 +33,7 @@ compileKotlin {
     }
 }
 
-shadowJar {
-    manifest {
-        attributes 'Main-Class': 'ca.danielstout.halicrime.Main'
-    }
-}
+mainClassName ="ca.danielstout.halicrime.MainKt"
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"

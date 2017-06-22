@@ -45,7 +45,8 @@ class CrimeFetcher(private val mapper: ObjectMapper)
                                 latitude = coords[1],
                                 longitude = coords[0],
                                 location = props.location,
-                                type = props.type)
+                                type = props.type,
+                                id = null)
                         }
                         .filterNotNull()
                 }, { err ->

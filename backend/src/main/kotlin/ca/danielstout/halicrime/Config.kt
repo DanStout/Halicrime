@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.File
 import java.io.IOException
 
-class Config(val dbUser: String, val dbPass: String, val dbPort: Int, val dbHost: String, val dbName: String)
+class Config(val dbUser: String, val dbPass: String, val dbPort: Int, val dbHost: String, val dbName: String, val serverPort : Int)
 {
     companion object
     {

@@ -9,12 +9,16 @@ CREATE DATABASE crime_db OWNER crime_user;
 GRANT ALL PRIVILEGES ON DATABASE crime_db TO crime_user;
 ```
 
-## To Do
+
+
+
+## Tasks
+### To Do
 * Investigate Kotlin DI
 * Create VueJS webapp to view data
 
 
-## Done
+### Done
 * Initial setup
 * Load configuration from file
 * Setup Flyway
