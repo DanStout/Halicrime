@@ -1,18 +1,20 @@
 <template>
   <div class="wrap">
-      <div id="buttons">
-        <select v-model="selectedCrime">
-            <option 
-            v-for="type in crimetypes"
-            v-bind:key="type"
-            v-bind:value="type"
-            >
-            {{ titlecase(type) }}
-            </option>
-        </select>
-      </div>
-      <div id ="daterange">
-        <p>Data from {{ minDate }} to {{ maxDate }}</p>
+      <div id="absolute-wrap">
+        <div id ="daterange">
+          <p>Data from {{ minDate }} to {{ maxDate }}</p>
+        </div>
+        <div id="buttons">
+          <select v-model="selectedCrime">
+              <option 
+              v-for="type in crimetypes"
+              v-bind:key="type"
+              v-bind:value="type"
+              >
+              {{ titlecase(type) }}
+              </option>
+          </select>
+        </div>
       </div>
       <gmap-map
         id="gmap"
@@ -114,7 +116,25 @@ export default {
   right:0;
   z-index:1;
   padding:10px;
-  background:rgba(255, 255, 255, 0.75)
+  background:rgba(255, 255, 255, 0.75);
+}
+
+@media(max-width:440px) {
+  #daterange {
+    position:relative;
+    padding:5px;
+  }
+
+  #buttons {
+    position:relative;
+    padding:5px;
+  }
+}
+
+#absolute-wrap {
+  height:40px;
+  width:100%;
+  position:absolute;
 }
 
 #daterange p {
