@@ -1,5 +1,6 @@
 <template>
   <gmap-map
+  ref="map"
   :center="{lat: 44.663244, lng:-63.584962}"
   :zoom="12"
   map-type-id="terrain"
@@ -16,6 +17,7 @@
 </template>
 
 <script>
+/* global google */
 export default {
   name: 'hello',
   data() {
@@ -29,7 +31,16 @@ export default {
     var url = baseUrl + 'crimes'
     console.log(url)
     $.get(url)
-    .done(crimes => this.crimes.push(...crimes))
+    .done(crimes => {
+      this.$refs.map.$mapCreated.then(map => {
+        var opts = {
+          data: crimes.map(c => new google.maps.LatLng(c.latitude, c.longitude)),
+          map: map
+        }
+        var heatmap = new google.maps.visualization.HeatmapLayer(opts)
+        heatmap.set('radius', 35)
+      })
+    })
     .fail(() => console.log('Failed to fetch crimes'))
   },
   methods: {
