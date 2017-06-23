@@ -3,13 +3,16 @@
       <div id="buttons">
         <select v-model="selectedCrime">
             <option 
-            v-for="(crimes, type) in crimegroups"
+            v-for="type in crimetypes"
             v-bind:key="type"
             v-bind:value="type"
             >
-            {{ type }}
+            {{ titlecase(type) }}
             </option>
         </select>
+      </div>
+      <div id ="daterange">
+        <p>Data from {{ minDate }} to {{ maxDate }}</p>
       </div>
       <gmap-map
         id="gmap"
@@ -24,27 +27,30 @@
 </template>
 
 <script>
+import * as util from '../util/util.js'
+import * as api from '../util/api.js'
 /* global google */
 export default {
-  name: 'hello',
   data() {
     return {
       heatmap: null,
       crimegroups: null,
-      selectedCrime: 'ALL'
+      selectedCrime: 'ALL',
+      minDate: '?',
+      maxDate: '?'
     }
   },
   mounted() {
-    console.log(process.env.NODE_ENV === 'development')
-    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:7777/api/' : '/api/'
-    var url = baseUrl + 'crimes'
-    console.log(url)
-    $.get(url)
+    api.getCrimes()
     .done(crimes => {
       this.$refs.map.$mapCreated.then(map => {
         crimes.forEach(c => (c.latlng = new google.maps.LatLng(c.latitude, c.longitude)))
 
-        var groups = this.groupBy(crimes, 'type')
+        // The crimes are ordered in ascending order
+        this.minDate = crimes[0].date
+        this.maxDate = crimes[crimes.length - 1].date
+
+        var groups = util.groupBy(crimes, 'type')
         groups['ALL'] = crimes
         this.crimegroups = groups
 
@@ -55,26 +61,26 @@ export default {
         var heatmap = new google.maps.visualization.HeatmapLayer(opts)
         heatmap.set('radius', 30)
         this.heatmap = heatmap
-        this.setCrimeToType('ALL')
+        this.showCrimesOfType('ALL')
       })
     })
     .fail(() => console.log('Failed to fetch crimes'))
   },
+  computed: {
+    crimetypes() {
+      var keys = []
+      for (var prop in this.crimegroups) {
+        keys.push(prop)
+      }
+      keys.sort()
+      return keys
+    }
+  },
   methods: {
-    groupBy(list, property) {
-      return list.reduce((map, value) => {
-        var key = value[property];
-        (map[key] = map[key] || []).push(value)
-        return map
-      }, {})
+    titlecase(str) {
+      return util.titlecase(str)
     },
-    clicked() {
-      this.crimes.push({})
-    },
-    toLatLng(crime) {
-      return { lat: crime.latitude, lng: crime.longitude }
-    },
-    setCrimeToType(crimeType) {
+    showCrimesOfType(crimeType) {
       console.log('Crime type selected: ' + crimeType)
       var hmap = this.heatmap
       if (hmap) {
@@ -84,7 +90,7 @@ export default {
   },
   watch: {
     selectedCrime(selCrime) {
-      this.setCrimeToType(selCrime)
+      this.showCrimesOfType(selCrime)
     }
   }
 }
@@ -99,7 +105,23 @@ export default {
   top:0;
   left:0;
   z-index:1;
+  padding:10px;
 }
+
+#daterange {
+  position:absolute;
+  top:0;
+  right:0;
+  z-index:1;
+  padding:10px;
+  background:rgba(255, 255, 255, 0.75)
+}
+
+#daterange p {
+  margin:0;
+  padding:0;
+}
+
 .wrap {
   width:100%;
   height:100%;
