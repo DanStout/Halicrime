@@ -1,19 +1,26 @@
 <template>
-  <gmap-map
-  ref="map"
-  :center="{lat: 44.663244, lng:-63.584962}"
-  :zoom="12"
-  map-type-id="terrain"
-  style="width: 100%; height: 100%"
->
-  <gmap-marker
-    v-for="crime in crimes"
-    :key = crime.id
-    :position = toLatLng(crime)
-    :title = crime.type
-  >
-  </gmap-marker>
-  </gmap-map>
+  <div class="wrap">
+      <div id="buttons">
+        <select v-model="selectedCrime">
+            <option 
+            v-for="(crimes, type) in crimegroups"
+            v-bind:key="type"
+            v-bind:value="type"
+            >
+            {{ type }}
+            </option>
+        </select>
+      </div>
+      <gmap-map
+        id="gmap"
+        ref="map"
+        :center="{lat: 44.663244, lng:-63.584962}"
+        :zoom="12"
+        style="width: 100%; height: 100%"
+      >
+    </gmap-map>
+  </div>
+
 </template>
 
 <script>
@@ -22,7 +29,9 @@ export default {
   name: 'hello',
   data() {
     return {
-      crimes: []
+      heatmap: null,
+      crimegroups: null,
+      selectedCrime: 'ALL'
     }
   },
   mounted() {
@@ -33,40 +42,69 @@ export default {
     $.get(url)
     .done(crimes => {
       this.$refs.map.$mapCreated.then(map => {
+        crimes.forEach(c => (c.latlng = new google.maps.LatLng(c.latitude, c.longitude)))
+
+        var groups = this.groupBy(crimes, 'type')
+        groups['ALL'] = crimes
+        this.crimegroups = groups
+
         var opts = {
-          data: crimes.map(c => new google.maps.LatLng(c.latitude, c.longitude)),
+          data: [],
           map: map
         }
         var heatmap = new google.maps.visualization.HeatmapLayer(opts)
-        heatmap.set('radius', 35)
+        heatmap.set('radius', 30)
+        this.heatmap = heatmap
+        this.setCrimeToType('ALL')
       })
     })
     .fail(() => console.log('Failed to fetch crimes'))
   },
   methods: {
+    groupBy(list, property) {
+      return list.reduce((map, value) => {
+        var key = value[property];
+        (map[key] = map[key] || []).push(value)
+        return map
+      }, {})
+    },
+    clicked() {
+      this.crimes.push({})
+    },
     toLatLng(crime) {
       return { lat: crime.latitude, lng: crime.longitude }
+    },
+    setCrimeToType(crimeType) {
+      console.log('Crime type selected: ' + crimeType)
+      var hmap = this.heatmap
+      if (hmap) {
+        hmap.setData(this.crimegroups[crimeType].map(c => c.latlng))
+      }
+    }
+  },
+  watch: {
+    selectedCrime(selCrime) {
+      this.setCrimeToType(selCrime)
     }
   }
 }
 </script>
 
-<style scoped>
-h1, h2 {
-  font-weight: normal;
+<style>
+.gmnoprint {
+  display:none;
 }
-
-ul {
-  list-style-type: none;
-  padding: 0;
+#buttons {
+  position:absolute;
+  top:0;
+  left:0;
+  z-index:1;
 }
-
-li {
-  display: inline-block;
-  margin: 0 10px;
+.wrap {
+  width:100%;
+  height:100%;
 }
-
-a {
-  color: #42b983;
+#gmap {
+  z-index:0
 }
 </style>

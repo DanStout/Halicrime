@@ -121,7 +121,7 @@ class App
                 }
             })
         }
-        router.route().handler(StaticHandler.create())
+        router.route().handler(StaticHandler.create().setFilesReadOnly(false))
         val port = conf.serverPort;
         server.requestHandler({ router.accept(it) }).listen(port)
         log.info("Server launched on port $port")
