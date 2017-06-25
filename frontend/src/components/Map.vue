@@ -8,8 +8,8 @@
           <select v-model="selectedCrime">
               <option 
               v-for="type in crimetypes"
-              v-bind:key="type"
-              v-bind:value="type"
+              :key="type"
+              :value="type"
               >
               {{ titlecase(type) }}
               </option>
@@ -21,6 +21,7 @@
         ref="map"
         :center="{lat: 44.663244, lng:-63.584962}"
         :zoom="12"
+        :options="{fullscreenControl: false}"
         style="width: 100%; height: 100%"
       >
     </gmap-map>
